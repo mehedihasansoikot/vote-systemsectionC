@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Voting System</title>
+<title>Election Voting System</title>
 
 <meta name="viewport" content="width=device-width, initial-scale=1">
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
 
 <style>
 body{
@@ -12,108 +14,164 @@ body{
     display:flex;
     justify-content:center;
     align-items:center;
-    background:linear-gradient(135deg,#c84cff,#ff69b4);
+    background:linear-gradient(135deg,#2b003d,#ff4fd8);
     font-family:Arial;
 }
 
-.box{
-    background:white;
-    padding:20px;
-    border-radius:15px;
+.container{
+    background:rgba(255,255,255,0.95);
+    padding:25px;
+    border-radius:20px;
     width:90%;
     max-width:500px;
     text-align:center;
+    box-shadow:0 0 25px rgba(0,0,0,0.3);
+}
+
+h2,h3{
+    color:#111;
 }
 
 button{
-    margin:5px;
-    padding:10px;
-    background:#a020f0;
-    color:white;
+    padding:10px 15px;
+    margin:8px;
     border:none;
     border-radius:8px;
+    background:#8000ff;
+    color:white;
     cursor:pointer;
 }
 
-.result{
-    margin-top:20px;
+button:hover{
+    background:#a64dff;
+}
+
+input{
+    padding:10px;
+    width:80%;
+    margin:10px;
+}
+
+.result-box{
     text-align:left;
+    margin-top:15px;
+    font-size:14px;
+}
+
+.footer-btn{
+    position:fixed;
+    bottom:15px;
+    width:100%;
+    text-align:center;
+}
+
+.robot{
+    font-family:'Orbitron',sans-serif;
+    font-size:22px;
+    font-weight:bold;
 }
 </style>
 </head>
 
 <body>
 
-<div class="box" id="app">
+<div class="container" id="app">
 
-<h3>Enter Roll (121–150)</h3>
-<input type="number" id="roll"><br><br>
+<h2>ENTER YOUR ROLL (121 - 150)</h2>
+
+<input type="number" id="roll">
+<br>
 <button onclick="start()">Continue</button>
 
 </div>
 
-<script>
-let voted = JSON.parse(localStorage.getItem("votes") || "{}");
+<!-- FOOTER RESULT BUTTON -->
+<div class="footer-btn">
+<button onclick="openPassword()">View Results</button>
+</div>
 
+<script>
+let votes = JSON.parse(localStorage.getItem("votes") || "{}");
+let currentRoll = null;
+
+// START VOTING
 function start(){
     let roll = document.getElementById("roll").value;
 
     if(roll < 121 || roll > 150){
-        alert("Invalid Roll");
+        alert("Invalid Roll Number");
         return;
     }
 
-    if(voted[roll]){
-        showResults();
+    if(votes[roll]){
+        showThankYou();
         return;
     }
 
-    showQuestion(roll);
+    currentRoll = roll;
+    showQuestion();
 }
 
-function showQuestion(roll){
-    app.innerHTML = `
-        <h3>What do you want for the betterment of the system?</h3>
+// SHOW QUESTION
+function showQuestion(){
+    document.getElementById("app").innerHTML = `
+        <h3>What do you want for the betterment of the current system?</h3>
 
-        <button onclick="vote(${roll}, 'ELECTION')">I want ELECTION</button><br>
-        <button onclick="vote(${roll}, 'NO ELECTION')">I do not want ELECTION</button>
+        <button onclick="vote('ELECTION')">I want ELECTION</button><br>
+        <button onclick="vote('NO ELECTION')">I Do not want ELECTION</button>
     `;
 }
 
-function vote(roll, choice){
-    voted[roll] = choice;
-    localStorage.setItem("votes", JSON.stringify(voted));
-
-    showResults();
+// VOTE SAVE
+function vote(choice){
+    votes[currentRoll] = choice;
+    localStorage.setItem("votes", JSON.stringify(votes));
+    showThankYou();
 }
 
+// THANK YOU SCREEN
+function showThankYou(){
+    document.getElementById("app").innerHTML = `
+        <div class="robot">THANK YOU FOR YOUR PARTICIPATION</div>
+    `;
+}
+
+// PASSWORD FOR RESULTS
+function openPassword(){
+    let pass = prompt("Enter Password to View Results:");
+
+    if(pass === "2502131131"){
+        showResults();
+    } else {
+        alert("Wrong Password");
+    }
+}
+
+// SHOW RESULTS
 function showResults(){
 
     let election = [];
     let noElection = [];
 
-    for(let r in voted){
-        if(voted[r] === "ELECTION") election.push(r);
-        else noElection.push(r);
+    for(let r in votes){
+        if(votes[r] === "ELECTION"){
+            election.push(r);
+        } else {
+            noElection.push(r);
+        }
     }
 
-    app.innerHTML = `
-        <h2>RESULTS</h2>
+    document.body.innerHTML = `
+        <div class="container">
+            <h2>ELECTION RESULTS</h2>
 
-        <h3>✅ ELECTION (${election.length})</h3>
-        <div>${election.join(", ") || "No votes yet"}</div>
+            <h3>✔ I WANT ELECTION (${election.length})</h3>
+            <div class="result-box">${election.join(", ") || "No votes"}</div>
 
-        <h3>❌ NO ELECTION (${noElection.length})</h3>
-        <div>${noElection.join(", ") || "No votes yet"}</div>
-
-        <br>
-        <button onclick="reset()">Reset (Clear All)</button>
+            <h3>✖ I DO NOT WANT ELECTION (${noElection.length})</h3>
+            <div class="result-box">${noElection.join(", ") || "No votes"}</div>
+        </div>
     `;
-}
-
-function reset(){
-    localStorage.removeItem("votes");
-    location.reload();
 }
 </script>
 
